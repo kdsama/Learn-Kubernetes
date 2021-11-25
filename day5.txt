@@ -1,0 +1,132 @@
+Namespaces
+pods,services,deployments are created inside a namespace,them default namespace
+kube-system
+kube-public
+
+we can create our own namespace
+eg dev/Prod. so the resources are isolated
+each namespaces have set of policies about who can do what 
+
+We can access resources across different name spaces. 
+FOr example :- if you want to access in the same namespace 
+mysql.connect('pg-server')
+But if you want to connect to db in the other namespace aka dev. 
+instead of pg-server we will use 
+pg-server.dev.svc.cluster.local 
+
+cluster.local==>domain 
+svc ==> subdomain 
+dev ==> namepsace
+pg-server ==> application name
+
+get pods of another namespace
+kubectl get pods --namespace=dev
+We can add namespace in metadata of the yml file. Same level as name . 
+
+
+Create a namespace 
+namespace.yml
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: dev
+
+
+To create directly from commandline
+kubectl create namespace dev 
+
+To switch to dev namespace permanently
+kubectl config set-context $(kubectl config current-context) --namespace=dev
+get current context and set a new namespace for the current context
+view pods in all namespaces
+kubectl get-pods --all-namespaces
+
+
+Limit resources 
+Compute-quota.yml 
+apiVersion: v1 
+kind: ResourceQuota
+metadata:
+    name: compute-quota 
+    namespace: dev
+spec:
+    hard:
+        pods: "10"
+        requests.cpu: "4"
+        requests.memory: 5Gi
+        limits.cpu: "10"
+        limits.memory: 10Gi
+
+
+
+
+
+Imperative vs Declarative 
+
+Imperative ::
+Step by step instructions . what to do and how to do , is imperative approach 
+kubectl cli commands to create pod , deployment, update deployment, etc
+kubectl create -f nginx.yaml 
+kubectl delete -f nginx.yaml 
+kubectl scale deployment nginx --replicas=5 
+and etc 
+
+Create and Update commands that are example of Imperative 
+kubectl run --image=nginx nginx 
+kubectl create deployment --image=nginx nginx 
+kubectl expose deployment  --image=nginx 80 
+
+kubectl edit deployment nginx 
+kubectl scale deployment nginx --replicas=5
+kubectl set image deployment nginx nginx=nginx:1.18
+ 
+ 
+We dont have to deal with yaml files here . 
+Run once and forgotten. Difficult to keep track of. 
+note : use 
+replace -f nginx.yaml
+instead of 
+edit deployment nginx 
+
+"kubectl replace --force -f nginx.yaml"
+The above command forcefully recreates/deletes the objects 
+replace wont work if object doesnot work 
+create on update wont work 
+
+
+
+
+
+==========================================================
+Declarative ::
+Just specify the final destination. We are declaring final destination and system figures out how to do . 
+
+kubectl apply -f nginx.yaml 
+system here figure outs what changes are needed to be done to get the desires infrastructure. 
+example :- 3 replicas are already present, and a new demand for 5 comes, it will understand and create only two more 
+apply command is used here . 
+It is intelligent enough to create new objects if not exists. 
+We can also give whole directories to kubectl apply command to do in bulk 
+
+
+
+Tips :::::: 
+-o yaml Will help you create resource definition in YAML format 
+--dry-run=client this wont create the resource right away. It tells you whether the resource 
+can be created and if your command is right 
+
+
+Apply COMMAND 
+if doesnot already exist , it is created 
+when created , yaml is created and saved in kubernetes.
+
+1. Yaml is converted into json and saved in last applied configuration 
+apply compares live yaml and local file . 
+Why last applied configuration then ?
+last applied helps us figure out what fields have been removed . 
+
+Where is json stored ? 
+saved as annotation in Live object configuration yaml(under metadata)
+
+
+

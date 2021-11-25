@@ -1,0 +1,116 @@
+Networking in Kubernetes 
+In Kuberntes, each pod gets its own internal ip address
+Each node has an ip 
+each pod has an ip which is connected to an internal network  
+We setup network . 
+All pods must be able to communicate  with each other . 
+All nodes should be able to communicate with all containers and vice-cersa without NAT .
+Network provider provides routing solutions which will lead to have different ip for all pods , and nodes . 
+
+
+
+
+
+
+Services 
+
+Enable communication within and outside of the application
+Helps us connect with other applications or users . 
+enable loose coupling bw microservices. 
+
+How external user will access the application ?? 
+k8 service is a service like objects, which listens to a port on a node and forward request to the port on the pod !. 
+This is node pod service . 
+
+
+
+
+Service types . 
+1. Node port . 
+2. Cluster IP :: Virutal ip inside cluster , to enable communication bw example :: backend server and frotend server 
+3. Load balancer :: Name is enough . 
+
+Node port ==> port ==>  target port 
+
+
+
+apiVersion: v1 
+kind: Service 
+metadata: 
+    name: myapp-service
+spec: 
+    type : NodePort
+    ports:
+        - targetPort: 80
+           port: 80 
+           nodePort: 30008
+
+
+    // Port is a mandatory filed . 
+    // if you dont provide nodePort , a valid available port between 30000 and 32767 range will be selected 
+
+
+How we connect this service with pods ? 
+Use selectors and label are needed here 
+apiVersion: v1 
+kind: Service 
+metadata: 
+    name: myapp-service
+spec: 
+    type : NodePort
+    ports:
+        - targetPort: 80
+           port: 80 
+           nodePort: 30008
+        selector: 
+            app: myapp 
+            type: front-end
+
+
+what if you have multiple pods ? 
+When service is created , it looks for matching pod , finds 3 of them . 
+Service connect all three to forward requests coming from the user
+It uses a random algorithm for this internal load balancer . 
+
+What if pods are distributed across different nodes ? 
+k8 creates a service that spans across all the nodes. This way you can access through any node's ip .
+No impact if we add or remove a pod , making service highly flexible 
+
+
+
+Cluster IP
+Pods dont have a static IP . so How will we connect backend to frontend to database or whatever ? if a pod goes down from backend
+the frontend might not be able to communicate with it. We cant rely on these ips . 
+
+cluster ip enable microservice architecture . 
+Each layer can scale . 
+Each layer gets an ip and name assigned to it and other pods get that name to access the service . 
+
+ClusterIP is default Type. 
+
+apiVersion: v1
+kind: Service 
+metadata: 
+    name: back-end 
+spec: 
+    type: ClusterIP
+    ports:
+     - targetPort: 80 
+        port: 80 
+    selector: 
+        app: myapp
+        type: back-end 
+
+basically the above the yaml will create a clusterIP service for backend nodes that have backend pods that have backend code . 
+
+
+
+Load Balancer ::: 
+What IP will you give to the client-side ? 
+if app1 is hosted on node1 and node2 . Still node3 and node4 would be able to access  as they all are in the same cluster ? 
+type: LoadBalancer <== can be used for AWS , Azure, GCP . 
+On other cloud platform/ local system, it will be same as nodePort . 
+
+
+
+

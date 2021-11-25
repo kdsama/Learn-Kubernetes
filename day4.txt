@@ -1,0 +1,97 @@
+Core Concepts 
+- Cluster architecture
+- Api primitives 
+- Services and Other Network Primitives. 
+
+
+
+
+
+ETCD  
+distributed key value store , simple reliable and fast. 
+./etcdtl set key1 value1 
+./ecdtl get key1 
+
+ETCD in Kubernetes
+store informations regarding the cluster like : 
+Nodes 
+PODS 
+configs 
+secrets
+accounts
+roles
+bindings 
+others
+
+kubectl get command <== all the information you see is from the etcd itself
+Any change will be saved in etcd server 
+--advertised_client_url ::: https://INTERNALIP:2379 <== while configuring etcd
+
+
+If you have several nodes in a cluster would mean you will have several etcd instances for each of them . 
+In HA environment , all the etcd instances should know about each other 
+for this we setup,
+--initial-cluster
+
+Kube-API Server
+Kube api server is primary management component. 
+when we hit kubectl command . what happens ? 
+1. it reaches kuybe api sever 
+2. it authenticate and validate the request. 
+3. It then fetches data from etcd cluster. 
+4. We can do api request. 
+
+Authenticate 
+validate 
+retrieve data 
+update etcd
+scheduler 
+kubelet 
+
+
+
+
+Kube Controller Manager. 
+Watch states of containers continuously and remediate action to bring all to applicable state 
+Node-controller health check every 5 seconds. wait 40 seconds until it marks unreachable. POD eviction timeout is 5 minutes. 
+Or else it will create a new pod 
+
+how to see controllers ? 
+All controllers are in Kube-Controller-Manager 
+
+
+
+Kube Scheduler 
+for deciding which pod in which node. It wont actually place the pod . Kubelet place the pods . 
+It makes sure right controller on right node. Criteria ?? 
+Kube Scheduler 
+1. Filter out nodes that are incompatible 
+2. Scheduler ranks the nodes , It calculates resources if pod was placed on it .
+
+
+
+Kubelet 
+Captain on the ship. Point of contact on master node . 
+Send status of nodes to master nodes. 
+
+
+
+Kube Proxy 
+every pod can reach any other pod . Pod network spans across all the other pods. 
+Service is a virtual component in k8s memory . 
+Kube proxy is a process that runs on each node . Its job is to look for new services. Every time a new services, it creates app rules at each node to forward traffic . 
+It creates ip table rules on each node in the cluster to forward the traffic of the service to the actual pod . 
+
+
+
+
+
+
+
+
+
+
+
+
+Namespaces 
+

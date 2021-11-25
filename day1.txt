@@ -1,0 +1,100 @@
+Use the code - DEVOPS15 - while registering for the CKA or CKAD exams at Linux Foundation to get a 15% discount.
+
+
+Certified Kubernetes Administrator: https://www.cncf.io/certification/cka/
+
+Exam Curriculum (Topics): https://github.com/cncf/curriculum
+
+Candidate Handbook: https://www.cncf.io/certification/candidate-handbook
+
+Exam Tips: http://training.linuxfoundation.org/go//Important-Tips-CKA-CKAD
+
+Overview :: 
+
+
+A cluster ==> several nodes setup for higher availability. But master contains all the information about health and other metadata.
+Master is another node with kubernetes installed. Watches the node over the cluster. Orchestrates . 
+
+
+API Server :- frontend of k8
+etcd :- distributed key value store to all node information. 
+Responsible for implementing locks so no conflict bw master 
+Scheduler : responsible for distributing work or container across the nodes. 
+Controllers : brains behind orchestration. It creates the containers that then is put up in a node 
+container runtime : Docker 
+kublet : run on each node in the cluster. Makes sure containers are running as expected. 
+
+
+
+Master node has 
+
+kube apiserver 
+etcd 
+controller 
+scheduler 
+
+Worker node 
+Container runtime aka docker 
+Kubelet. 
+
+
+
+kubectl run , info , get nodes. 
+
+
+
+
+
+Setup Kubernetes 
+minkube service list 
+kubectl get pods 
+kubectl get deployments
+kubectl run deployment 
+kubectl create deployment
+kubectl describe pod POD_NAME
+kubectl get pods -o wide <== get IP address as well.
+
+
+
+
+PODS 
+Docker Containers are encapsulated in a kubernetes object called a pod.
+Pod is an instance of an application
+smallest application you can create in kubernetes
+New pods for scaling , in the same node . pods in new node if first node's capacity is finished. 
+POD is 1:1 with containers running your application.
+We dont add new containers in same pods. 
+Single pod can have many containers , but usually the containers might not be of same type. 
+
+
+How to deploy pods 
+==> kubectl run nginx --image nginx 
+docker-hub se aayegi nginx ki image 
+
+
+
+
+POD with YAML 
+Always consist of 
+
+apiVersion: v1 // pod is the scope
+kind: Pod // replicaset, deployment etc
+metadata: 
+   name: myapp-pod
+   labels: // we can add any key value pair 
+      app: myapp 
+      type: front-end // helps in filtering when there are several pods in the future. 
+
+spec: 
+  containers:
+     - name: nginx-container
+       image: nginx 
+
+create a new object via the yml above ? 
+
+kubectl apply/create -f pod.yml
+These all are required fields.
+
+
+
+

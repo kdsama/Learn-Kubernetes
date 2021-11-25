@@ -1,0 +1,173 @@
+Kubernetes Controllers 
+
+brain behind k8s 
+monitor k8 objects and respond . 
+
+1.Replication controller
+we can specify number of pods at all time . 
+We can deploy additional pods on other nodes across the clusters according to demand. 
+ replica controller is old technology. we use replica sets now . 
+
+ How we create ReplicationController
+apiVersion: v1 
+kind: ReplicationController 
+metadata: 
+   name: myapp-rc
+   labels: 
+      app: myapp 
+      type: front-end 
+
+spec: 
+    template: // use pod template
+        metadata: 
+            name: myapp-pod
+            labels: // we can add any key value pair 
+                app: myapp 
+                type: front-end // helps in filtering when there are several pods in the future. 
+
+        spec: 
+            containers:
+            - name: nginx-container
+              image: nginx 
+    replicas: 3 // child of spec. same level as template
+
+
+kubectl get replicationcontroller
+kubectl get pods <== can be seen separately
+
+
+How we create replicaset
+apiVersion: apps/v1  <== need to use this for replicaset
+kind: ReplicaSet 
+metadata: 
+   name: myapp-rc
+   labels: 
+      app: myapp 
+      type: front-end 
+spec: 
+    template: 
+        metadata: 
+            name: myapp-pod
+            labels:
+                app: myapp 
+                type: front-end
+
+        spec: 
+            containers:
+            - name: nginx-container
+              image: nginx 
+    replicas: 3 
+    selector : // This is different and in replicaset , not controller   
+        matchLabels:
+            type: front-end // matches the labels with the one of the pods . This has to be same as pod . we dont care about metadata of replicaSet
+
+kubectl create -f replicaset-definition.yml 
+
+
+Labels and Selectors ::::
+monitor the pods , if failed , get new ones . 
+// how it knows what pods to monitor ?? thats why labelling is used. These labels are used as filters . We give these labels 
+to selector so it can know which one is it controlling. 
+// if three is already created, it wont create a new pod. 
+
+
+How we scale the replicaSet :::: 
+    How we update our replicaSet if we go from 3 to 6 ??? 
+    
+        1.change replicas 3 to 6 and run 
+            kubectl create -f replicaset-definition.yml 
+        2. kubectl scale --replicas=6 -f replicaset-definition.yml 
+            kubectl scale --replicas=6 replicaset replicaset-definition.yml
+            This wont update the yml file. But 6 replicas will be deployed
+
+to delete 
+kubectl delete replicaset myapp-replicaset
+to update 
+kubectl replace -f replicaset-definition.yml
+to inspect 
+kubectl inspect replicaset myapp-replicaset 
+<== here you can get history about replicas. 
+
+You cant create a new pod with same label after creating replicaset. 
+
+kubectl edit replicaset apps-replicaset 
+// a vim will open . In JSON . 
+ 
+
+                
+
+
+
+============================================================================================================================================================
+Deployment <== higher in heirarchy than replicaset 
+undo changes , pause , resume changes, rollbacks 
+
+
+
+
+apiVersion: apps/v1  <== need to use this for replicaset
+kind: Deployment 
+metadata: 
+   name: myapp-deployment
+   labels: 
+      app: myapp 
+      type: front-end 
+spec: 
+    template: 
+        metadata: 
+            name: myapp-pod
+            labels:
+                app: myapp 
+                type: front-end
+
+        spec: 
+            containers:
+            - name: nginx-container
+              image: nginx 
+    replicas: 3 
+    selector : 
+        matchLabels:
+            type: front-end 
+
+To get deployments :: 
+kubectl get deployments 
+Deployment automatically create a replicaset. 
+
+
+
+To get all the objects created 
+kubectl get all 
+
+
+DEPLOYMENTS - UPDATE AND ROLLBACK
+
+
+check rollout of your deployment : Bole toh , jab roll out hora hai tab kitna roll out hogaya kitna remaining hai etc 
+kubectl rollout status deployment/myapp-depluoyment
+
+To check history of rollout :
+kubectl rollout history deployment/myapp-deployment
+
+Deployment Strategies : 
+1. RECREATE :: destroy all and create new intances . (sequentially) ==> there is down time . <== not default strategy
+2. ROLLING UPDATE :: One by One. take down and put upgrade. This is the default one . 
+
+
+kubectl set image deployment/myapp-deployment \ nginx=nginx:1.9.1 <== directly change the image but deployment file will not get updated 
+
+So on upgrade
+    Deployment object creates a new replicaset object 
+    A pod of rep1 is deleted and a new one is created. 
+    this happens till all the pods in replicaset are removed. 
+    you can check this by ::: kubectl get replicaset <== two replicaset will be present. One of them will have 0 pods. 
+
+To roll back this ?? ::::
+
+kubectl rollout undo deployment/myapp-deployment 
+
+check replicasets now . New replicaset will have zero pods and old one will have all of them. 
+Note to self . When creating a deployment :== use kubectl create 
+               When updating an existing deployment :== use kubectl apply 
+               This seems more appropriate .  
+
+--record=true will add to change-cause in rollout history aka kubectl rollout history deployment/apps-deployment
